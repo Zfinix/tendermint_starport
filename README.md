@@ -26,4 +26,8 @@ flutter run --dart-define=LCD_URL=https://api.testnet.cosmos.network --dart-defi
 
 I have been able to perform a swap using the CLI tool but not the api:
 
+```bash
+gaiad tx liquidity swap 14 1 100000uphoton ibc/070B20BE0D1576B9AFBF54428BDF092B26B0D43B84D0EF1E779CBE8240000355 1000 0.003 --from alice --chain-id cosmoshub-testnet --gas-prices "0.03uphoton" --node https://testnet.cosmos.network:443
+```
+
 ![image](https://user-images.githubusercontent.com/25801929/151596206-644eb8e5-8560-4858-9701-61828b28731e.png)
