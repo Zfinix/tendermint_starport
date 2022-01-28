@@ -4,6 +4,7 @@ import 'package:currency_text_input_formatter/currency_text_input_formatter.dart
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:starport_template/entities/balance.dart';
 import 'package:starport_template/pages/passcode_prompt_page.dart';
 
@@ -193,6 +194,23 @@ class _SwapPageState extends State<SwapPage> {
                       StarportApp.liquidityStore.swapTokens(
                         info: StarportApp.walletsStore.selectedWallet,
                         password: password,
+                        onResult: (response) {
+                          showMaterialModalBottomSheet(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => SizedBox(
+                              height: MediaQuery.of(context).size.height / 2.24,
+                              child: CosmosBottomSheetContainer(
+                                child: ListView(
+                                  padding: EdgeInsets.all(10),
+                                  children: [
+                                    Text(response),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       );
                     },
                     text: 'Review',

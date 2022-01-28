@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cosmos_utils/cosmos_utils.dart';
+import 'package:flutter/material.dart' as widget;
 import 'package:mobx/mobx.dart';
 import 'package:starport_template/model/denom_trace_mode.dart';
 import 'package:starport_template/model/pool_list_model.dart';
@@ -78,12 +79,14 @@ class LiquidityStore {
   Future<void> swapTokens({
     required WalletPublicInfo info,
     required String password,
+    required Function(String) onResult,
   }) async {
     isCreatePooLoading = true;
     try {
       await LiquidityPool(_transactionSigningGateway, baseEnv).swapTokens(
         info,
         password,
+        onResult,
       );
     } catch (ex, stack) {
       logError(ex, stack);

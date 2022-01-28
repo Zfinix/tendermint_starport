@@ -4,6 +4,7 @@ import 'package:fixnum/fixnum.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:alan/proto/cosmos/tx/v1beta1/tx.pb.dart' as alan;
+import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:starport_template/model/denom_trace_mode.dart';
 import 'package:starport_template/model/pool_list_model.dart';
 import 'package:starport_template/model/pool_params_model.dart';
@@ -29,6 +30,7 @@ class LiquidityPool {
   Future<void> swapTokens(
     WalletPublicInfo info,
     String password,
+    Function(String) onResult,
   ) async {
     final unsignedTransaction = UnsignedAlanTransaction(
       messages: [
@@ -38,7 +40,7 @@ class LiquidityPool {
           swapTypeId: 1,
           offerCoin: liquidity.Coin(
             denom: 'uphoton',
-            amount: '10000',
+            amount: '1000',
           ),
           demandCoinDenom:
               'ibc/070B20BE0D1576B9AFBF54428BDF092B26B0D43B84D0EF1E779CBE8240000355',
@@ -46,7 +48,7 @@ class LiquidityPool {
             denom: 'uphoton',
             amount: '150',
           ),
-          orderPrice: '1000.000000000000000000',
+          orderPrice: '1000',
         ),
       ],
       fee: alan.Fee(
@@ -90,8 +92,10 @@ class LiquidityPool {
             headers: {'Content-Type': 'application/json'},
             body: json.encode(requestPayload),
           );
+          final prettyJson = jsonPretty(response.body);
 
-          print(jsonPretty(response.body));
+          onResult(prettyJson);
+          print(prettyJson);
         } catch (e) {
           print(e.toString());
         }
