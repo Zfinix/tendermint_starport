@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:starport_template/entities/balance.dart';
+import 'package:starport_template/pages/passcode_prompt_page.dart';
 
 import 'package:starport_template/pages/pool/widgets/cosmos_pool_app_bar.dart';
 import 'package:starport_template/pages/swap/widgets/gradient_text_avatar.dart';
@@ -184,14 +185,14 @@ class _SwapPageState extends State<SwapPage> {
                   child: CosmosElevatedButton(
                     height: 58,
                     onTap: () async {
-                     /*  final password =
+                      final password =
                           await PasswordPromptPage.promptPassword(context);
                       if (password == null) {
                         return;
-                      } */
+                      }
                       StarportApp.liquidityStore.swapTokens(
                         info: StarportApp.walletsStore.selectedWallet,
-                        password: '111111',
+                        password: password,
                       );
                     },
                     text: 'Review',
