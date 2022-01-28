@@ -1,5 +1,14 @@
+## 📸 Screen Shots
+
+<p float="left">
+<img src="https://github.com/Zfinix/tendermint_starport/blob/master/1.png?raw=true" width="200">
+<img src="https://github.com/Zfinix/tendermint_starport/blob/master/2.png?raw=true" width="200">
+<img src="https://github.com/Zfinix/tendermint_starport/blob/master/3.png?raw=true" width="200">
+<img src="https://github.com/Zfinix/tendermint_starport/blob/master/4.png?raw=true" width="200">
+</p>
 
 ## Setup and run Flutter app
+
 - [Setup Flutter based on your operating system](https://flutter.dev/docs/get-started/install)
 - Make sure you follow all the steps above and have an all-green output of `flutter doctor` command.
 - [Install and run Anroid Studio once](https://developer.android.com/studio/install)
@@ -13,4 +22,3 @@
 ```
 flutter run --dart-define=LCD_URL=https://api.testnet.cosmos.network --dart-define=LCD_PORT=443 --dart-define=GRPC_URL=https://grpc.testnet.cosmos.network --dart-define=GRPC_PORT=443
 ```
-
