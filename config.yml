@@ -1,0 +1,19 @@
+version: 1
+accounts:
+  - name: alice
+    coins: ["100000000000token", "100000000stake", "500000000000foo", "8000000uphoton"]
+  - name: bob
+    coins: ["500000token", "50000foo"]
+validator:
+  name: alice
+  staked: "100000000stake"
+faucet:
+  name: alice
+  coins: ["1000token", "5000foo", "800uphoton"]
+  coins_max: ["1000000token", "80000000uphoton"]
+  port: 4500
+client:
+  openapi:
+    path: "docs/static/openapi.yml"
+  vuex:
+    path: "vue/src/store"
