@@ -24,4 +24,6 @@ Please run with:
 flutter run --dart-define=LCD_URL=https://api.testnet.cosmos.network --dart-define=LCD_PORT=443 --dart-define=GRPC_URL=https://grpc.testnet.cosmos.network --dart-define=GRPC_PORT=443
 ```
 
-I have been able to perform a swap using the CLI tool but not the api:![image](https://user-images.githubusercontent.com/25801929/151596206-644eb8e5-8560-4858-9701-61828b28731e.png)
+I have been able to perform a swap using the CLI tool but not the api:
+
+![image](https://user-images.githubusercontent.com/25801929/151596206-644eb8e5-8560-4858-9701-61828b28731e.png)
