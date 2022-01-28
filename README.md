@@ -19,6 +19,9 @@
 - To run it on your `localhost` environment, you will just have to run `main.dart` file in your project. That can be done directly by clicking on the play button in your IDE, or by running `flutter run` from the root of your project. This will run the app on any device or simulator connected to your system
 - If you're running the app on real device instead of emulator/simulator or want to taget a specific blockchain run on a remote machine, make sure to specify proper urls and ports when running the app. Here is an example for running the app on cosmos hub testnet:
 
+Please run with:
 ```
 flutter run --dart-define=LCD_URL=https://api.testnet.cosmos.network --dart-define=LCD_PORT=443 --dart-define=GRPC_URL=https://grpc.testnet.cosmos.network --dart-define=GRPC_PORT=443
 ```
+
+I have been able to perform a swap using the CLI tool but not the api:![image](https://user-images.githubusercontent.com/25801929/151596206-644eb8e5-8560-4858-9701-61828b28731e.png)
