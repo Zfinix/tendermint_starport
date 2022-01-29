@@ -32,25 +32,30 @@ class LiquidityPool {
     String password,
     Function(String) onResult,
   ) async {
+    
+    var msgSwapWithinBatch = liquidity.MsgSwapWithinBatch(
+      swapRequesterAddress: 'cosmos1vyqxnxnu5unak39l9cz0uah93s2mxc6cg248zx',
+      poolId: Int64(14),
+      swapTypeId: 1,
+      offerCoin: liquidity.Coin(
+        denom: 'uphoton',
+        amount: '1000',
+      ),
+      demandCoinDenom:
+          'ibc/070B20BE0D1576B9AFBF54428BDF092B26B0D43B84D0EF1E779CBE8240000355',
+      offerCoinFee: liquidity.Coin(
+        denom: 'uphoton',
+        amount: '150',
+      ),
+      orderPrice: '1000',
+    );
+
+    final val = liquidity.MsgClient(baseEnv.networkInfo.gRPCChannel);
+
+    val.swap(msgSwapWithinBatch);
+
     final unsignedTransaction = UnsignedAlanTransaction(
-      messages: [
-        liquidity.MsgSwapWithinBatch(
-          swapRequesterAddress: 'cosmos1vyqxnxnu5unak39l9cz0uah93s2mxc6cg248zx',
-          poolId: Int64(14),
-          swapTypeId: 1,
-          offerCoin: liquidity.Coin(
-            denom: 'uphoton',
-            amount: '1000',
-          ),
-          demandCoinDenom:
-              'ibc/070B20BE0D1576B9AFBF54428BDF092B26B0D43B84D0EF1E779CBE8240000355',
-          offerCoinFee: liquidity.Coin(
-            denom: 'uphoton',
-            amount: '150',
-          ),
-          orderPrice: '1000',
-        ),
-      ],
+      messages: [msgSwapWithinBatch],
       fee: alan.Fee(
         amount: [],
         gasLimit: Int64(200000),
@@ -92,6 +97,7 @@ class LiquidityPool {
             headers: {'Content-Type': 'application/json'},
             body: json.encode(requestPayload),
           );
+
           final prettyJson = jsonPretty(response.body);
 
           onResult(prettyJson);
