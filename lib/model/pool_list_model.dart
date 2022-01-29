@@ -32,7 +32,7 @@ class PoolListModel with EquatableMixin {
 
   factory PoolListModel.fromMap(Map<String, dynamic> map) {
     return PoolListModel(
-      pools: (map['pools'] as List)
+      pools: (map['pools'] as List? ?? [])
           .map((x) => Pool.fromMap(x as Map<String, dynamic>))
           .toList(),
       pagination: Pagination.fromMap(map['pagination'] as Map<String, dynamic>),
