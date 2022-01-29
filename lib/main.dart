@@ -22,22 +22,15 @@ void main() {
 }
 
 void _buildDependencies() {
-  StarportApp.networkInfo = NetworkInfo(
-    bech32Hrp: 'cosmos',
-    lcdInfo: LCDInfo(
-        host: Platform.isAndroid ? 'http://10.0.2.2' : 'http://localhost'),
-    grpcInfo: GRPCInfo(
-        host: Platform.isAndroid ? 'http://10.0.2.2' : 'http://localhost'),
-  );
-
   StarportApp.secureDataStore = FlutterSecureStorageDataStore();
+  StarportApp.baseEnv = BaseEnv();
   StarportApp.signingGateway = TransactionSigningGateway(
     transactionSummaryUI: NoOpTransactionSummaryUI(),
     signers: [
-      AlanTransactionSigner(StarportApp.networkInfo),
+      AlanTransactionSigner(StarportApp.baseEnv.networkInfo),
     ],
     broadcasters: [
-      AlanTransactionBroadcaster(StarportApp.networkInfo),
+      AlanTransactionBroadcaster(StarportApp.baseEnv.networkInfo),
     ],
     infoStorage: CosmosKeyInfoStorage(
       serializers: [AlanCredentialsSerializer()],
@@ -45,7 +38,6 @@ void _buildDependencies() {
       plainDataStore: SharedPrefsPlainDataStore(),
     ),
   );
-  StarportApp.baseEnv = BaseEnv();
   StarportApp.walletsStore =
       WalletsStore(StarportApp.signingGateway, StarportApp.baseEnv);
   StarportApp.liquidityStore =

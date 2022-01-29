@@ -1,4 +1,3 @@
-import 'package:alan/alan.dart';
 import 'package:cosmos_ui_components/cosmos_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:starport_template/pages/routing_page.dart';
@@ -19,7 +18,6 @@ class StarportApp extends StatelessWidget {
   static late TransactionsStore transactionsStore;
   static late LiquidityStore liquidityStore;
   static late BaseEnv baseEnv;
-  static late NetworkInfo networkInfo;
   static late SecureDataStore secureDataStore;
 
   @override

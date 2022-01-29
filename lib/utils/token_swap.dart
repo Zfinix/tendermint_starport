@@ -35,7 +35,7 @@ class LiquidityPool {
     final unsignedTransaction = UnsignedAlanTransaction(
       messages: [
         liquidity.MsgSwapWithinBatch(
-          swapRequesterAddress: 'cosmos1vyqxnxnu5unak39l9cz0uah93s2mxc6cg248zx',
+          swapRequesterAddress: info.publicAddress,
           poolId: Int64(14),
           swapTypeId: 1,
           offerCoin: liquidity.Coin(
@@ -51,12 +51,6 @@ class LiquidityPool {
           orderPrice: '1000',
         ),
       ],
-      fee: alan.Fee(
-        amount: [],
-        gasLimit: Int64(200000),
-        granter: '',
-        payer: '',
-      ),
     );
 
     final walletLookupKey = WalletLookupKey(
