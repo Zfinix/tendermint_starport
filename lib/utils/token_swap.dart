@@ -1,19 +1,18 @@
 import 'dart:convert';
 
+import 'package:cosmos_utils/cosmos_utils.dart';
 import 'package:fixnum/fixnum.dart';
-import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:alan/proto/cosmos/tx/v1beta1/tx.pb.dart' as alan;
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
+import 'package:starport_template/entities/msg_send_swap_transaction.dart';
 import 'package:starport_template/model/denom_trace_mode.dart';
 import 'package:starport_template/model/pool_list_model.dart';
 import 'package:starport_template/model/pool_params_model.dart';
+import 'package:starport_template/model/single_tx_model.dart';
 import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/utils/base_env.dart';
-import 'package:starport_template/utils/pretty_json.dart';
+import 'package:starport_template/utils/transaction_signer.dart';
 import 'package:tendermint_liquidity/proto/tendermint.liquidity.v1beta1/export.dart'
     as liquidity;
-import 'package:transaction_signing_gateway/model/wallet_lookup_key.dart';
 import 'package:transaction_signing_gateway/transaction_signing_gateway.dart';
 
 //// The module enables you to create a liquidity pool with a pair of coins,
@@ -27,93 +26,149 @@ class LiquidityPool {
   TransactionSigningGateway transactionSigningGateway;
   BaseEnv baseEnv;
 
+  /// Send a deposit token request to the blockchain
+  Future<void> depositTokens(
+    WalletPublicInfo info,
+    String password,
+    List<TxCoin> depositCoins,
+    int poolId,
+    Function(SingleTxModel) onResult,
+  ) async {
+    /// Generate an `UnsignedAlanTransaction`
+    final unsignedTransaction = UnsignedAlanTransaction(
+      messages: [
+        liquidity.MsgDepositWithinBatch(
+          depositorAddress: info.publicAddress,
+          poolId: Int64(poolId),
+          depositCoins: depositCoins.map(
+            (it) => liquidity.Coin(
+              amount: it.amount,
+              denom: it.ibc ?? it.denom,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    /// Sign and broadcast transaction
+    final result = await StarportTransactionSigner.signAndBroadcastTransaction(
+      info: info,
+      password: password,
+      unsignedTransaction: unsignedTransaction,
+      transactionSigningGateway: transactionSigningGateway,
+    );
+
+    result.fold(
+      (fail) => throw fail,
+      (hash) async {
+        debugLog('new TX hash: ${hash.txHash}');
+
+        /// Get and return Transaction Hash
+        final req = await getTransactionByHash(hash.txHash);
+        onResult(req);
+      },
+    );
+  }
+
+  /// Send a withdraw token request to the blockchain
+  Future<void> withdrawTokens(
+    WalletPublicInfo info,
+    String password,
+    TxCoin poolCoin,
+    int poolId,
+    Function(SingleTxModel) onResult,
+  ) async {
+    /// Generate an `UnsignedAlanTransaction`
+    final unsignedTransaction = UnsignedAlanTransaction(
+      messages: [
+        liquidity.MsgWithdrawWithinBatch(
+          withdrawerAddress: info.publicAddress,
+          poolId: Int64(poolId),
+          poolCoin: liquidity.Coin(
+            amount: poolCoin.amount,
+            denom: poolCoin.ibc ?? poolCoin.denom,
+          ),
+        ),
+      ],
+    );
+
+    /// Sign and broadcast transaction
+    final result = await StarportTransactionSigner.signAndBroadcastTransaction(
+      info: info,
+      password: password,
+      unsignedTransaction: unsignedTransaction,
+      transactionSigningGateway: transactionSigningGateway,
+    );
+
+    result.fold(
+      (fail) => throw fail,
+      (hash) async {
+        debugLog('new TX hash: ${hash.txHash}');
+
+        /// Get and return Transaction Hash
+        final req = await getTransactionByHash(hash.txHash);
+        onResult(req);
+      },
+    );
+  }
+
+  /// Send a swap token request to the blockchain
   Future<void> swapTokens(
     WalletPublicInfo info,
     String password,
-    Function(String) onResult,
+    MsgSendSwapTransaction tx,
   ) async {
-    
-    var msgSwapWithinBatch = liquidity.MsgSwapWithinBatch(
-      swapRequesterAddress: 'cosmos1vyqxnxnu5unak39l9cz0uah93s2mxc6cg248zx',
-      poolId: Int64(14),
-      swapTypeId: 1,
-      offerCoin: liquidity.Coin(
-        denom: 'uphoton',
-        amount: '1000',
-      ),
-      demandCoinDenom:
-          'ibc/070B20BE0D1576B9AFBF54428BDF092B26B0D43B84D0EF1E779CBE8240000355',
-      offerCoinFee: liquidity.Coin(
-        denom: 'uphoton',
-        amount: '150',
-      ),
-      orderPrice: '1000',
-    );
-
-    final val = liquidity.MsgClient(baseEnv.networkInfo.gRPCChannel);
-
-    val.swap(msgSwapWithinBatch);
-
+    /// Generate an `UnsignedAlanTransaction`
     final unsignedTransaction = UnsignedAlanTransaction(
-      messages: [msgSwapWithinBatch],
-      fee: alan.Fee(
-        amount: [],
-        gasLimit: Int64(200000),
-        granter: '',
-        payer: '',
-      ),
+      messages: [
+        liquidity.MsgSwapWithinBatch(
+          swapRequesterAddress: info.publicAddress,
+          poolId: Int64(tx.poolId),
+          swapTypeId: tx.swapTypeId,
+          offerCoin: liquidity.Coin(
+            denom: tx.offerCoin.ibc ?? tx.offerCoin.denom,
+            amount: tx.offerCoin.amount,
+          ),
+          demandCoinDenom: tx.demandCoin.ibc ?? tx.demandCoin.denom,
+          offerCoinFee: liquidity.Coin(
+            denom: tx.offerCoin.ibc ?? tx.offerCoin.denom,
+            amount: '${tx.offerCoinFeeAmount}',
+          ),
+          orderPrice: '${tx.orderPrice}',
+        ),
+      ],
     );
 
-    final walletLookupKey = WalletLookupKey(
-      walletId: info.walletId,
-      chainId: 'cosmoshub-testnet',
+    /// Sign and broadcast transaction
+    final result = await StarportTransactionSigner.signAndBroadcastTransaction(
+      info: info,
       password: password,
-    );
-
-    final result = await transactionSigningGateway.signTransaction(
-      transaction: unsignedTransaction,
-      walletLookupKey: walletLookupKey,
+      unsignedTransaction: unsignedTransaction,
+      transactionSigningGateway: transactionSigningGateway,
     );
 
     result.fold(
-      (l) => print(l),
-      (r) async {
-        try {
-          final bytes = base64Encode(
-            (r as SignedAlanTransaction).signedTransaction.writeToBuffer(),
-          );
+      (fail) => throw fail,
+      (hash) async {
+        debugLog('new TX hash: ${hash.txHash}');
 
-          final uri =
-              'https://api.testnet.cosmos.network:443/cosmos/tx/v1beta1/txs';
-          final requestPayload = {
-            'jsonrpc': '2.0',
-            'method': 'broadcast_tx_commit',
-            'params': {'tx': bytes},
-            'id': '1',
-          };
-
-          final response = await http.post(
-            Uri.parse('https://rpc.testnet.cosmos.network:443'),
-            headers: {'Content-Type': 'application/json'},
-            body: json.encode(requestPayload),
-          );
-
-          final prettyJson = jsonPretty(response.body);
-
-          onResult(prettyJson);
-          print(prettyJson);
-        } catch (e) {
-          print(e.toString());
-        }
+        /// Get and return Transaction Hash
+        final req = await getTransactionByHash(hash.txHash);
+        tx.onResult(req);
       },
     );
-    /*     
-    result.fold(
-      (fail) => throw fail as Object,
-      (hash) => debugPrint('new TX hash: ${hash.txHash}'),
-    ); */
   }
 
+  /// Get Liquidity Pool List
+  Future<SingleTxModel> getTransactionByHash(String hash) async {
+    final uri = '${baseEnv.baseApiUrl}/cosmos/tx/v1beta1/txs/$hash';
+    final response = await http.get(Uri.parse(uri));
+    final map = jsonDecode(response.body) as Map<String, dynamic>;
+
+    return SingleTxModel.fromJson(map);
+  }
+
+  /// Get Liquidity Pool List
   Future<List<Pool>> getLiquidityPoolList() async {
     final uri = '${baseEnv.baseApiUrl}/cosmos/liquidity/v1beta1/pools';
     final response = await http.get(Uri.parse(uri));
@@ -129,16 +184,16 @@ class LiquidityPool {
   }
 
   /// Get liquidity params
-  Future<Amount> getPoolSupply(poolId) async {
+  Future<TxCoin> getPoolSupply(poolId) async {
     final uri = '${baseEnv.baseApiUrl}/cosmos/bank/v1beta1/supply/$poolId';
     final response = await http.get(Uri.parse(uri));
     final map = jsonDecode(response.body) as Map<String, dynamic>;
 
-    return Amount.fromJson(map['amount']);
+    return TxCoin.fromJson(map['amount']);
   }
 
-  /// Get token supply
-  Stream<List<Amount>> getSupply() async* {
+  /// Get Stream of token supply
+  Stream<List<TxCoin>> getSupply() async* {
     final uri = '${baseEnv.baseApiUrl}/cosmos/bank/v1beta1/supply';
     final response = await http.get(Uri.parse(uri));
 
@@ -149,52 +204,60 @@ class LiquidityPool {
     }
 
     final list = (map['supply'] as List<dynamic>).map(
-      (e) => Amount.fromJson(e as Map<String, dynamic>),
+      (e) => TxCoin.fromJson(e as Map<String, dynamic>),
     );
 
-    var finalList = <Amount>[];
-
+    /// Iterate and get get the Get Token Name using the IBC Denom fror each item
+    var finalList = <TxCoin>[];
     for (var item in list) {
       final ibc = await getTokenNameFromDenom(item.denom);
       finalList.add(item.copyWith(
         denom: ibc.denomTrace.baseDenom,
         ibc: item.denom,
       ));
-      yield finalList;
+      yield finalList.toSet().toList()
+        ..sort(
+          (a, b) => a.denom.compareTo(b.denom),
+        );
     }
   }
 
-  /// Get liquidity params
+  /// Get Token Name using the IBC Denom
   Future<DenomTraceModel> getTokenNameFromDenom(String ibc) async {
-    if (ibc == 'uphoton') {
-      return DenomTraceModel(
-        denomTrace: DenomTrace(
-          baseDenom: 'uphoton',
-          path: '',
-        ),
-      );
-    }
-
+    /// Get Token Name using the poolId
     if (ibc.toLowerCase().contains('pool')) {
       return getTokenNameFromPoolDenom(ibc);
     }
 
-    final uri =
-        '${baseEnv.baseApiUrl}/ibc/applications/transfer/v1beta1/denom_traces/${ibc.split('/').last}';
-    final response = await http.get(Uri.parse(uri));
-    return DenomTraceModel.fromJson(response.body);
+    /// Get Token Name using the poolId
+    if (ibc.contains('/')) {
+      final uri =
+          '${baseEnv.baseApiUrl}/ibc/applications/transfer/v1beta1/denom_traces/${ibc.split('/').last}';
+      final response = await http.get(Uri.parse(uri));
+      return DenomTraceModel.fromJson(response.body);
+    }
+
+    /// Return the ibc/denom if its neither
+    return DenomTraceModel(
+      denomTrace: DenomTrace(
+        baseDenom: ibc,
+        path: '',
+      ),
+    );
   }
 
-  /// Get liquidity params
-  Future<DenomTraceModel> getTokenNameFromPoolDenom(String ibc) async {
+  /// Get Token Name using the poolId
+  Future<DenomTraceModel> getTokenNameFromPoolDenom(String poolId) async {
     final uri =
-        '${baseEnv.baseApiUrl}/cosmos/liquidity/v1beta1/pools/pool_coin_denom/$ibc';
+        '${baseEnv.baseApiUrl}/cosmos/liquidity/v1beta1/pools/pool_coin_denom/$poolId';
     final response = await http.get(Uri.parse(uri));
-    final map = jsonDecode(response.body) as Map<String, dynamic>;
 
+    final map = jsonDecode(response.body) as Map<String, dynamic>;
     final list = map['pool']['reserve_coin_denoms'] as List<dynamic>;
 
     var temp = [];
+
+    /// Iterate and get get the Get Token Name using the IBC Denom fror each item
     for (var e in list) {
       temp.add(e.toLowerCase().contains('ibc')
           ? (await getTokenNameFromDenom(e)).denomTrace.baseDenom

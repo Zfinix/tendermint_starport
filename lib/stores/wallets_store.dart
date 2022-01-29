@@ -3,10 +3,10 @@ import 'dart:async';
 import 'package:cosmos_utils/cosmos_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
-import 'package:starport_template/entities/balance.dart';
-import 'package:starport_template/entities/denom.dart';
+
 import 'package:starport_template/entities/import_wallet_form_data.dart';
 import 'package:starport_template/entities/wallet_additional_data.dart';
+import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/starport_app.dart';
 import 'package:starport_template/utils/base_env.dart';
 import 'package:starport_template/utils/cosmos_balances.dart';
@@ -37,7 +37,7 @@ class WalletsStore {
   final Observable<bool> _isBalancesLoadingError = Observable(false);
   final Observable<bool> _isRenamingWallet = Observable(false);
   final Observable<bool> _isSendingMoney = Observable(false);
-  final Observable<List<Balance>> _balancesList = Observable([]);
+  final Observable<List<TxCoin>> _balancesList = Observable([]);
   final Observable<CredentialsStorageFailure?> loadWalletsFailure =
       Observable(null);
   final Observable<CredentialsStorageFailure?> _renameWalletFailure =
@@ -53,9 +53,9 @@ class WalletsStore {
   set areWalletsLoading(bool val) =>
       Action(() => _areWalletsLoading.value = val)();
 
-  List<Balance> get balancesList => _balancesList.value;
+  List<TxCoin> get balancesList => _balancesList.value;
 
-  set balancesList(List<Balance> val) =>
+  set balancesList(List<TxCoin> val) =>
       Action(() => _balancesList.value = val)();
 
   bool get isSendingMoney => _isSendingMoney.value;
@@ -172,15 +172,18 @@ class WalletsStore {
       for (var it in val) {
         String baseDenom;
         try {
-          baseDenom = (await StarportApp.liquidityStore
-                  .getTokenNameFromDenom(it.denom.text))
-              .denomTrace
-              .baseDenom;
+          baseDenom =
+              (await StarportApp.liquidityStore.getTokenNameFromDenom(it.denom))
+                  .denomTrace
+                  .baseDenom;
         } catch (e) {
           print(e.toString());
-          baseDenom = it.denom.text;
+          baseDenom = it.denom;
         }
-        balancesList = [...balancesList, it.copyWith(denom: Denom(baseDenom))];
+        balancesList = [
+          ...balancesList,
+          it.copyWith(ibc: it.denom, denom: baseDenom)
+        ];
       }
     } catch (error, stack) {
       logError(error, stack);
@@ -245,7 +248,7 @@ class WalletsStore {
 
   Future<void> sendTokens({
     required WalletPublicInfo info,
-    required Balance balance,
+    required TxCoin coin,
     required String toAddress,
     required String password,
   }) async {
@@ -254,7 +257,7 @@ class WalletsStore {
     try {
       await TokenSender(_transactionSigningGateway).sendCosmosMoney(
         info,
-        balance,
+        coin,
         toAddress,
         password,
       );

@@ -126,18 +126,7 @@ class _SwapAssetPageState extends State<SwapAssetPage> {
   }
 
   void _onTapContinue() {
-    /*   Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => SignTransactionPage(
-          transaction: MsgSendTransaction(
-            amount: Amount.fromString(amount.toString()),
-            fee: fee,
-            recipient: walletAddress,
-          ),
-          balance: widget.balance,
-        ),
-      ),
-    ); */
+    /*  */
   }
 
   @override

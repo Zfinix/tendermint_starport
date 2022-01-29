@@ -43,11 +43,11 @@ class CosmosTransactionHistoryLoader {
       (e) {
         final model = e.tx.body.messages.first;
 
-        List<Amount?> amount = [
+        List<TxCoin?> amount = [
           ...?model.amount ?? model.depositCoins,
           model.offerCoin,
           model.offerCoinFee,
-          Amount(
+          TxCoin(
             amount: model.packet?.destination_channel ?? '',
             denom: model.packet?.data ?? '',
             ibc: '',

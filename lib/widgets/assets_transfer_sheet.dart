@@ -3,7 +3,8 @@ import 'package:cosmos_ui_components/cosmos_ui_components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:starport_template/entities/balance.dart';
+import 'package:starport_template/model/tx_model.dart';
+
 import 'package:starport_template/starport_app.dart';
 
 class AssetsTransferSheet extends StatefulWidget {
@@ -14,7 +15,7 @@ class AssetsTransferSheet extends StatefulWidget {
   }) : super(key: key);
 
   final VoidCallback onTapDone;
-  final Balance recipientGetsAmount;
+  final TxCoin recipientGetsAmount;
 
   @override
   State<AssetsTransferSheet> createState() => _AssetsTransferSheetState();
@@ -24,12 +25,19 @@ class AssetsTransferSheet extends StatefulWidget {
     super.debugFillProperties(properties);
     properties
       ..add(ObjectFlagProperty<VoidCallback>.has('onTapDone', onTapDone))
-      ..add(ObjectFlagProperty<Balance>.has('recipientGetsAmount', recipientGetsAmount));
+      ..add(
+        ObjectFlagProperty<TxCoin>.has(
+          'recipientGetsAmount',
+          recipientGetsAmount,
+        ),
+      );
   }
 }
 
 class _AssetsTransferSheetState extends State<AssetsTransferSheet> {
-  bool get isLoading => StarportApp.walletsStore.isSendMoneyLoading;
+  bool get isLoading =>
+      StarportApp.walletsStore.isSendMoneyLoading ||
+      StarportApp.liquidityStore.isSwappingLoading;
 
   @override
   Widget build(BuildContext context) {

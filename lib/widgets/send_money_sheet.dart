@@ -1,4 +1,4 @@
-import 'package:cosmos_ui_components/components/content_state_switcher.dart';
+/* import 'package:cosmos_ui_components/components/content_state_switcher.dart';
 import 'package:cosmos_ui_components/components/cosmos_elevated_button.dart';
 import 'package:cosmos_ui_components/components/template/cosmos_password_field.dart';
 import 'package:cosmos_ui_components/components/template/cosmos_wallets_list_view.dart';
@@ -6,8 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:starport_template/entities/amount.dart';
-import 'package:starport_template/entities/balance.dart';
+
 import 'package:starport_template/entities/denom.dart';
+import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/starport_app.dart';
 import 'package:starport_template/stores/wallets_store.dart';
 import 'package:transaction_signing_gateway/model/wallet_public_info.dart';
@@ -93,8 +94,9 @@ class _SendMoneySheetState extends State<SendMoneySheet> {
       walletId: widget.walletInfo.walletId,
       chainId: WalletsStore.chainId,
     );
-    final balance = Balance(denom: widget.denom, amount: amount);
-    await StarportApp.walletsStore.sendTokens(info: info, balance: balance, toAddress: toAddress, password: password);
+    final balance = TxCoin(denom: widget.denom, amount: amount);
+    await StarportApp.walletsStore.sendTokens(
+        info: info, balance: balance, toAddress: toAddress, password: password);
     if (!mounted) {
       return;
     }
@@ -110,3 +112,4 @@ class _SendMoneySheetState extends State<SendMoneySheet> {
       ..add(StringProperty('password', password));
   }
 }
+ */

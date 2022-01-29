@@ -3,6 +3,8 @@
 import 'dart:io';
 
 import 'package:alan/alan.dart';
+import 'package:cosmos_utils/cosmos_utils.dart';
+import 'package:grpc/grpc.dart';
 
 class BaseEnv {
   BaseEnv({
@@ -19,6 +21,12 @@ class BaseEnv {
           grpcInfo: GRPCInfo(
             host: grpcUrl ?? envGrpcUrl,
             port: int.parse(grpcPort ?? envGrpcPort),
+            credentials: ChannelCredentials.secure(
+              onBadCertificate: (cert, host) {
+                debugLog("host: $host, cert: $cert");
+                return true;
+              },
+            ),
           ),
         ),
         baseApiUrl = '${lcdUrl ?? envLcdUrl}:${lcdPort ?? envLcdPort}';
@@ -33,7 +41,7 @@ String get envLcdPort => const String.fromEnvironment('LCD_PORT', defaultValue: 
 
 // DO NOT USE String.fromEnvironment without 'const'!!!
 // https://github.com/flutter/flutter/issues/55870#issuecomment-620776138
-String get envGrpcPort => const String.fromEnvironment('GRPC_PORT_', defaultValue: '9090');
+String get envGrpcPort => const String.fromEnvironment('GRPC_PORT', defaultValue: '9090');
 
 String get envLcdUrl {
   // DO NOT USE String.fromEnvironment without 'const'!!!
@@ -48,9 +56,9 @@ String get envLcdUrl {
 String get envGrpcUrl {
   // DO NOT USE String.fromEnvironment without 'const'!!!
   // https://github.com/flutter/flutter/issues/55870#issuecomment-620776138
- // const result = String.fromEnvironment('GRPC_URL');
-  //if (result.isEmpty) {
+  const result = String.fromEnvironment('GRPC_URL');
+  if (result.isEmpty) {
     return Platform.isAndroid ? 'http://10.0.2.2' : 'http://localhost';
-//  }
-//  return result;
+  }
+  return result;
 }

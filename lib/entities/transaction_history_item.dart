@@ -13,7 +13,7 @@ class TransactionHistoryItem {
   final TransactionType type;
   final String typeRaw;
   final DateTime date;
-  final List<Amount?> amount;
+  final List<TxCoin?> amount;
 
   String get transactionType {
     var replaceAll = typeRaw.split('.').last.replaceAll('Msg', '');

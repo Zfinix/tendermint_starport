@@ -1,7 +1,8 @@
 import 'package:cosmos_ui_components/cosmos_ui_components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:starport_template/entities/balance.dart';
+
+import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/pages/transfer_asset_page.dart';
 import 'package:starport_template/widgets/balance_card_list.dart';
 
@@ -11,18 +12,23 @@ class SelectAssetPage extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final List<Balance> balancesList;
+  final List<TxCoin> balancesList;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CosmosAppBar(leading: CosmosBackButton(), title: 'Select Asset'),
+      appBar: const CosmosAppBar(
+          leading: CosmosBackButton(), title: 'Select Asset'),
       body: Padding(
         padding: EdgeInsets.only(top: CosmosTheme.of(context).spacingXXL),
         child: BalanceCardList(
           balancesList: balancesList,
-          onTapItem: (balance) {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => TransferAssetPage(balance: balance)));
+          onTapItem: (coin) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => TransferAssetPage(coin: coin),
+              ),
+            );
           },
         ),
       ),
@@ -32,6 +38,6 @@ class SelectAssetPage extends StatelessWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(IterableProperty<Balance>('balancesList', balancesList));
+    properties.add(IterableProperty<TxCoin>('balancesList', balancesList));
   }
 }

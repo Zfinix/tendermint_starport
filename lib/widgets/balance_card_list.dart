@@ -1,8 +1,7 @@
 import 'package:cosmos_ui_components/cosmos_ui_components.dart';
-import 'package:cosmos_utils/amount_formatter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:starport_template/entities/balance.dart';
+import 'package:starport_template/model/tx_model.dart';
 
 class BalanceCardList extends StatelessWidget {
   const BalanceCardList({
@@ -11,8 +10,8 @@ class BalanceCardList extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
-  final List<Balance> balancesList;
-  final Function(Balance)? onTapItem;
+  final List<TxCoin> balancesList;
+  final Function(TxCoin)? onTapItem;
 
   @override
   Widget build(BuildContext context) {
@@ -22,10 +21,9 @@ class BalanceCardList extends StatelessWidget {
             (balance) => Column(
               children: [
                 CosmosBalanceCard(
-                  denomText: balance.denom.text.toUpperCase(),
-                  amountDisplayText:
-                      formatAmount(balance.amount.value.toDouble()),
-                  secondaryText: 'available ${balance.denom.text}',
+                  denomText: balance.denom.toUpperCase(),
+                  amountDisplayText: balance.amountFormatted,
+                  secondaryText: 'available ${balance.denom}',
                   onTap: onTapItem == null ? null : () => onTapItem!(balance),
                 ),
                 SizedBox(height: CosmosTheme.of(context).spacingL),
@@ -42,7 +40,7 @@ class BalanceCardList extends StatelessWidget {
     super.debugFillProperties(properties);
     properties
       ..add(
-          ObjectFlagProperty<Function(Balance p1)?>.has('onTapItem', onTapItem))
-      ..add(IterableProperty<Balance>('balancesList', balancesList));
+          ObjectFlagProperty<Function(TxCoin p1)?>.has('onTapItem', onTapItem))
+      ..add(IterableProperty<TxCoin>('balancesList', balancesList));
   }
 }

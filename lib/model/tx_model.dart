@@ -4,6 +4,10 @@
 
 import 'dart:convert';
 
+import 'package:cosmos_utils/amount_formatter.dart';
+import 'package:equatable/equatable.dart';
+
+import 'package:starport_template/extensions/extensions.dart';
 import 'package:starport_template/model/tx_packet.dart';
 
 class TxModel {
@@ -371,7 +375,7 @@ class Fee {
     required this.granter,
   });
 
-  final List<Amount> amount;
+  final List<TxCoin> amount;
   final String gasLimit;
   final String payer;
   final String granter;
@@ -381,8 +385,8 @@ class Fee {
   String toRawJson() => json.encode(toJson());
 
   factory Fee.fromJson(Map<String, dynamic> json) => Fee(
-        amount: List<Amount>.from(
-            (json["amount"] ?? []).map((x) => Amount.fromJson(x))),
+        amount: List<TxCoin>.from(
+            (json["amount"] ?? []).map((x) => TxCoin.fromJson(x))),
         gasLimit: json["gas_limit"],
         payer: json["payer"],
         granter: json["granter"],
@@ -396,7 +400,7 @@ class Fee {
       };
 
   Fee copyWith({
-    List<Amount>? amount,
+    List<TxCoin>? amount,
     String? gasLimit,
     String? payer,
     String? granter,
@@ -410,8 +414,8 @@ class Fee {
   }
 }
 
-class Amount {
-  Amount({
+class TxCoin with EquatableMixin {
+  TxCoin({
     required this.denom,
     required this.amount,
     required this.ibc,
@@ -419,27 +423,30 @@ class Amount {
 
   final String denom;
   final String amount;
-  final String ibc;
+  final String? ibc;
 
-  Amount copyWith({
+  double get amountInDouble => amount.parseDouble();
+  String get amountFormatted => formatAmount(amountInDouble);
+
+  TxCoin copyWith({
     String? denom,
     String? amount,
     String? ibc,
   }) =>
-      Amount(
+      TxCoin(
         denom: denom ?? this.denom,
         amount: amount ?? this.amount,
         ibc: ibc ?? this.ibc,
       );
 
-  factory Amount.fromRawJson(String str) => Amount.fromJson(json.decode(str));
+  factory TxCoin.fromRawJson(String str) => TxCoin.fromJson(json.decode(str));
 
   String toRawJson() => json.encode(toJson());
 
-  factory Amount.fromJson(Map<String, dynamic> json) => Amount(
+  factory TxCoin.fromJson(Map<String, dynamic> json) => TxCoin(
         denom: json["denom"] ?? '',
         amount: json["amount"] ?? '',
-        ibc: json["ibc"] ?? '',
+        ibc: json["ibc"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -447,6 +454,12 @@ class Amount {
         "amount": amount,
         "ibc": ibc,
       };
+
+  @override
+  String toString() => (ibc ?? denom).toUpperCase().toString();
+
+  @override
+  List<Object> get props => [ibc ?? denom, amount];
 }
 
 class SignerInfo {
@@ -656,16 +669,16 @@ class Message {
   final String type;
   final String poolCreatorAddress;
   final int poolTypeId;
-  final List<Amount>? depositCoins;
-  final List<Amount>? amount;
+  final List<TxCoin>? depositCoins;
+  final List<TxCoin>? amount;
   final String swapRequesterAddress;
   final String poolId;
   final int swapTypeId;
-  final Amount? offerCoin;
+  final TxCoin? offerCoin;
   final String demandCoinDenom;
   final String fromAddress;
   final String toAddress;
-  final Amount? offerCoinFee;
+  final TxCoin? offerCoinFee;
   final TxPacket? packet;
   final String orderPrice;
 
@@ -682,21 +695,21 @@ class Message {
         fromAddress: json["from_address"] ?? '',
         toAddress: json["to_address"] ?? '',
         depositCoins: json["deposit_coins"] != null
-            ? List<Amount>.from(
-                (json["deposit_coins"]).map((x) => Amount.fromJson(x)))
+            ? List<TxCoin>.from(
+                (json["deposit_coins"]).map((x) => TxCoin.fromJson(x)))
             : null,
         amount: json["amount"] != null
-            ? List<Amount>.from((json["amount"]).map((x) => Amount.fromJson(x)))
+            ? List<TxCoin>.from((json["amount"]).map((x) => TxCoin.fromJson(x)))
             : null,
         swapRequesterAddress: json["swap_requester_address"] ?? '',
         poolId: json["pool_id"] ?? '',
         swapTypeId: json["swap_type_id"] ?? 0,
         offerCoin: json["offer_coin"] != null
-            ? Amount.fromJson(json["offer_coin"])
+            ? TxCoin.fromJson(json["offer_coin"])
             : null,
         demandCoinDenom: json["demand_coin_denom"] ?? '',
         offerCoinFee: json["offer_coin_fee"] != null
-            ? Amount.fromJson(json["offer_coin_fee"])
+            ? TxCoin.fromJson(json["offer_coin_fee"])
             : null,
         orderPrice: json["order_price"] ?? '',
       );
@@ -719,16 +732,16 @@ class Message {
     String? type,
     String? poolCreatorAddress,
     int? poolTypeId,
-    List<Amount>? depositCoins,
-    List<Amount>? amount,
+    List<TxCoin>? depositCoins,
+    List<TxCoin>? amount,
     String? swapRequesterAddress,
     String? poolId,
     int? swapTypeId,
-    Amount? offerCoin,
+    TxCoin? offerCoin,
     String? demandCoinDenom,
     String? fromAddress,
     String? toAddress,
-    Amount? offerCoinFee,
+    TxCoin? offerCoinFee,
     TxPacket? packet,
     String? orderPrice,
   }) {

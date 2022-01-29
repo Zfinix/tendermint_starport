@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:cosmos_utils/cosmos_utils.dart';
-import 'package:flutter/material.dart' as widget;
 import 'package:mobx/mobx.dart';
+import 'package:starport_template/entities/msg_send_swap_transaction.dart';
 import 'package:starport_template/model/denom_trace_mode.dart';
 import 'package:starport_template/model/pool_list_model.dart';
 import 'package:starport_template/model/pool_params_model.dart';
+import 'package:starport_template/model/single_tx_model.dart';
 import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/utils/base_env.dart';
 import 'package:starport_template/utils/token_swap.dart';
@@ -20,7 +21,7 @@ class LiquidityStore {
   final Observable<bool> _isLiquidityPoolListError = Observable(false);
 
   final ObservableList<Pool> poolsList = ObservableList();
-  final Observable<bool> _isCreatePooLoading = Observable(false);
+  final Observable<bool> _isSwappingLoading = Observable(false);
   final Observable<bool> _isSwapTokensError = Observable(false);
 
   final Observable<bool> _isPoolParamsLoading = Observable(false);
@@ -28,7 +29,7 @@ class LiquidityStore {
   final Observable<PoolParamsModel> _poolParams =
       Observable(PoolParamsModel.empty());
 
-  final supplyList = StreamController<List<Amount>>.broadcast();
+  final supplyList = StreamController<List<TxCoin>>.broadcast();
   final Observable<bool> _isSupplyListParamsLoading = Observable(false);
   final Observable<bool> _isSupplyListParamsError = Observable(false);
 
@@ -40,9 +41,9 @@ class LiquidityStore {
   set isLiquidityPoolListError(bool val) =>
       Action(() => _isLiquidityPoolListError.value = val)();
 
-  bool get isCreatePooLoading => _isCreatePooLoading.value;
-  set isCreatePooLoading(bool val) =>
-      Action(() => _isCreatePooLoading.value = val)();
+  bool get isSwappingLoading => _isSwappingLoading.value;
+  set isSwappingLoading(bool val) =>
+      Action(() => _isSwappingLoading.value = val)();
 
   bool get isSwapTokensError => _isSwapTokensError.value;
   set isSwapTokensError(bool val) =>
@@ -77,22 +78,24 @@ class LiquidityStore {
   }
 
   Future<void> swapTokens({
-    required WalletPublicInfo info,
     required String password,
-    required Function(String) onResult,
+    required WalletPublicInfo info,
+    required MsgSendSwapTransaction transaction,
   }) async {
-    isCreatePooLoading = true;
+    isSwappingLoading = true;
+
     try {
       await LiquidityPool(_transactionSigningGateway, baseEnv).swapTokens(
         info,
         password,
-        onResult,
+        transaction,
       );
     } catch (ex, stack) {
       logError(ex, stack);
       isSwapTokensError = true;
     }
-    isCreatePooLoading = false;
+
+    isSwappingLoading = false;
   }
 
   Future<DenomTraceModel> getTokenNameFromDenom(String ibc) async {
@@ -100,7 +103,7 @@ class LiquidityStore {
         .getTokenNameFromDenom(ibc);
   }
 
-  Future<Amount> getPoolSupply(String poolId) async {
+  Future<TxCoin> getPoolSupply(String poolId) async {
     return await LiquidityPool(_transactionSigningGateway, baseEnv)
         .getPoolSupply(poolId);
   }

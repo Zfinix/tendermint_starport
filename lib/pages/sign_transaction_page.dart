@@ -5,25 +5,24 @@ import 'package:cosmos_ui_components/cosmos_ui_components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
-import 'package:starport_template/entities/balance.dart';
+
 import 'package:starport_template/entities/msg_send_transaction.dart';
+import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/pages/assets_portfolio_page.dart';
 import 'package:starport_template/pages/passcode_prompt_page.dart';
 import 'package:starport_template/starport_app.dart';
 import 'package:starport_template/widgets/assets_transfer_sheet.dart';
 import 'package:starport_template/widgets/sign_transaction_tab_view_item.dart';
 
-import 'package:starport_template/entities/amount.dart';
-
 class SignTransactionPage extends StatefulWidget {
   const SignTransactionPage({
     required this.transaction,
-    required this.balance,
+    required this.coin,
     Key? key,
   }) : super(key: key);
 
   final MsgSendTransaction transaction;
-  final Balance balance;
+  final TxCoin coin;
 
   @override
   State<SignTransactionPage> createState() => _SignTransactionPageState();
@@ -32,7 +31,7 @@ class SignTransactionPage extends StatefulWidget {
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty<Balance>('balance', balance))
+      ..add(DiagnosticsProperty<TxCoin>('coin', coin))
       ..add(
           DiagnosticsProperty<MsgSendTransaction>('transaction', transaction));
   }
@@ -58,7 +57,7 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
           SignTransactionTabViewItem(
             text: 'Send',
             amount: widget.transaction.amount.value.toDouble(),
-            balance: widget.balance,
+            coin: widget.coin,
           ),
           SizedBox(height: theme.spacingL),
           const CosmosDivider(),
@@ -66,7 +65,7 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
           SignTransactionTabViewItem(
             text: 'Recipient will get',
             amount: recipientGetsAmount,
-            balance: widget.balance,
+            coin: widget.coin,
           ),
           SizedBox(height: theme.spacingL),
           const CosmosDivider(),
@@ -107,9 +106,8 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
     unawaited(
       StarportApp.walletsStore.sendTokens(
         info: StarportApp.walletsStore.selectedWallet,
-        balance: Balance(
-          amount: widget.transaction.amount,
-          denom: widget.balance.denom,
+        coin: widget.coin.copyWith(
+          amount: widget.transaction.amount.toString(),
         ),
         toAddress: widget.transaction.recipient,
         password: password,
@@ -128,9 +126,8 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
       builder: (context) => SizedBox(
         height: MediaQuery.of(context).size.height / 2.24,
         child: AssetsTransferSheet(
-          recipientGetsAmount: Balance(
-            amount: Amount.fromString(recipientGetsAmount.toString()),
-            denom: widget.balance.denom,
+          recipientGetsAmount: widget.coin.copyWith(
+            amount: recipientGetsAmount.toString(),
           ),
           onTapDone: () => Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const AssetsPortfolioPage()),
@@ -149,7 +146,7 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
         children: [
           Text('Transaction fee', style: CosmosTextTheme.titleS),
           Text(
-            '${widget.transaction.fee.toString()} ${widget.balance.denom.text.toUpperCase()}',
+            '${widget.transaction.fee.toString()} ${widget.coin.denom.toUpperCase()}',
             style: CosmosTextTheme.copyMinus1Normal,
           ),
         ],
@@ -168,6 +165,6 @@ class _SignTransactionPageState extends State<SignTransactionPage> {
         ),
       )
       ..add(DoubleProperty('recipientGetsAmount', recipientGetsAmount))
-      ..add(DiagnosticsProperty<Balance>('balance', widget.balance));
+      ..add(DiagnosticsProperty<TxCoin>('balance', widget.coin));
   }
 }

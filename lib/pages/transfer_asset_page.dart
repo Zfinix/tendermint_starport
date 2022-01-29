@@ -3,8 +3,9 @@ import 'package:cosmos_ui_components/cosmos_ui_components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:starport_template/entities/amount.dart';
-import 'package:starport_template/entities/balance.dart';
+
 import 'package:starport_template/entities/msg_send_transaction.dart';
+import 'package:starport_template/model/tx_model.dart';
 import 'package:starport_template/pages/custom_fee_page.dart';
 import 'package:starport_template/pages/sign_transaction_page.dart';
 import 'package:starport_template/starport_app.dart';
@@ -14,11 +15,11 @@ import 'package:starport_template/widgets/touchable_opacity.dart';
 
 class TransferAssetPage extends StatefulWidget {
   const TransferAssetPage({
-    required this.balance,
+    required this.coin,
     Key? key,
   }) : super(key: key);
 
-  final Balance balance;
+  final TxCoin coin;
 
   @override
   State<TransferAssetPage> createState() => _TransferAssetPageState();
@@ -26,7 +27,7 @@ class TransferAssetPage extends StatefulWidget {
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
-    properties.add(DiagnosticsProperty<Balance>('balance', balance));
+    properties.add(DiagnosticsProperty<TxCoin>('coin', coin));
   }
 }
 
@@ -44,16 +45,15 @@ class _TransferAssetPageState extends State<TransferAssetPage> {
     return Scaffold(
       appBar: CosmosAppBar(
         leading: const CosmosBackButton(),
-        title: 'Transfer ${widget.balance.denom.text}',
+        title: 'Transfer ${widget.coin.denom}',
       ),
       body: Column(
         children: [
           SizedBox(height: theme.spacingXXXL),
           CosmosBalanceCard(
-            denomText: widget.balance.denom.text,
-            amountDisplayText: widget.balance.amount.displayText,
-            secondaryText:
-                'available ${widget.balance.denom.text.toUpperCase()}',
+            denomText: widget.coin.denom,
+            amountDisplayText: widget.coin.amount,
+            secondaryText: 'available ${widget.coin.denom.toUpperCase()}',
             isListTileType: true,
           ),
           SizedBox(height: theme.spacingXXL),
@@ -66,7 +66,7 @@ class _TransferAssetPageState extends State<TransferAssetPage> {
               amount = validateAmount(value);
               setState(() {});
             },
-            denomText: widget.balance.denom.text,
+            denomText: widget.coin.denom,
           ),
           SizedBox(height: theme.spacingXL),
           _customFee(theme),
@@ -87,7 +87,7 @@ class _TransferAssetPageState extends State<TransferAssetPage> {
           children: [
             Text('Fees', style: CosmosTextTheme.copy0Normal),
             const Spacer(),
-            Text('${fee.toString()} ${widget.balance.denom}'),
+            Text('${fee.toString()} ${widget.coin.denom}'),
             Image.asset('assets/images/arrow_right.png'),
           ],
         ),
@@ -99,7 +99,9 @@ class _TransferAssetPageState extends State<TransferAssetPage> {
     fee = await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => CustomFeePage(
-                denomText: widget.balance.denom.text, initialFee: fee),
+              denomText: widget.coin.denom,
+              initialFee: fee,
+            ),
           ),
         ) as double? ??
         0.0;
@@ -133,7 +135,7 @@ class _TransferAssetPageState extends State<TransferAssetPage> {
             fee: fee,
             recipient: walletAddress,
           ),
-          balance: widget.balance,
+          coin: widget.coin,
         ),
       ),
     );

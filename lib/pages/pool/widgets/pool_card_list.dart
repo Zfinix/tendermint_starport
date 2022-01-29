@@ -40,7 +40,7 @@ class PoolCardList extends StatelessWidget {
 
                   return Column(
                     children: [
-                      FutureBuilder<Amount>(
+                      FutureBuilder<TxCoin>(
                           future: StarportApp.liquidityStore
                               .getPoolSupply(pool.pool_coin_denom),
                           builder: (context, snapshot) {

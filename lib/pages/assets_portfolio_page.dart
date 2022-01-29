@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:cosmos_ui_components/cosmos_ui_components.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,6 @@ import 'package:starport_template/pages/swap/swap_page.dart';
 import 'package:starport_template/widgets/touchable_opacity.dart';
 import 'package:transaction_signing_gateway/model/wallet_public_info.dart';
 
-import 'package:starport_template/entities/balance.dart';
 import 'package:starport_template/pages/select_asset_page.dart';
 import 'package:starport_template/pages/transaction_history_page.dart';
 import 'package:starport_template/starport_app.dart';
@@ -33,7 +33,7 @@ class AssetsPortfolioPage extends StatefulWidget {
 }
 
 class _AssetsPortfolioPageState extends State<AssetsPortfolioPage> {
-  List<Balance> get balancesList => StarportApp.walletsStore.balancesList;
+  List<TxCoin> get balancesList => StarportApp.walletsStore.balancesList;
 
   ObservableList<Pool> get poolsList => StarportApp.liquidityStore.poolsList;
 
@@ -65,7 +65,7 @@ class _AssetsPortfolioPageState extends State<AssetsPortfolioPage> {
     return Scaffold(
       body: SafeArea(
         child: Center(
-          child: StreamBuilder<List<Amount>>(
+          child: StreamBuilder<List<TxCoin>>(
               stream: StarportApp.liquidityStore.supplyList.stream,
               builder: (context, supplSnapShot) {
                 final tokenList = supplSnapShot.data ?? [];
@@ -138,8 +138,23 @@ class _AssetsPortfolioPageState extends State<AssetsPortfolioPage> {
                                       MaterialPageRoute(
                                         builder: (context) {
                                           return SwapPage(
-                                            balancesList: balancesList,
-                                            
+                                            balancesList: balancesList
+                                                .where((e) =>
+                                                    !e.denom.contains('•'))
+                                                .map(
+                                              (e) {
+                                                final val = balancesList
+                                                    .firstWhereOrNull((k) {
+                                                  return e.denom == k.denom ||
+                                                      e.ibc == k.ibc;
+                                                });
+                                                return e.copyWith(
+                                                  amount: val != null
+                                                      ? val.amount
+                                                      : '0',
+                                                );
+                                              },
+                                            ).toList(),
                                           );
                                         },
                                       ),
@@ -254,7 +269,7 @@ class _AssetsPortfolioPageState extends State<AssetsPortfolioPage> {
       )
       ..add(DiagnosticsProperty<bool>('isBalancesLoading', isBalancesLoading))
       ..add(DiagnosticsProperty<bool>('isSendMoneyLoading', isSendMoneyLoading))
-      ..add(IterableProperty<Balance>('balancesList', balancesList))
+      ..add(IterableProperty<TxCoin>('balancesList', balancesList))
       ..add(IterableProperty<Pool>('poolsList', poolsList))
       ..add(DiagnosticsProperty<bool>('isError', isError));
   }
